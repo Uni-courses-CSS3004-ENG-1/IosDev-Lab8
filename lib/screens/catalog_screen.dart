@@ -38,7 +38,30 @@ class _CatalogScreenState extends State<CatalogScreen> {
   }
 
   void _dismissProduct(Product product) {
-    setState(() => _products.removeWhere((item) => item.id == product.id));
+    final index = _products.indexWhere((item) => item.id == product.id);
+    if (index == -1) return;
+    setState(() => _products.removeAt(index));
+
+    var restored = false;
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.removeCurrentSnackBar();
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text('${product.title} removed'),
+        behavior: SnackBarBehavior.floating,
+        action: SnackBarAction(
+          label: 'UNDO',
+          onPressed: () {
+            if (!mounted || restored) return;
+            if (_products.any((item) => item.id == product.id)) return;
+            restored = true;
+            setState(() {
+              _products.insert(index.clamp(0, _products.length), product);
+            });
+          },
+        ),
+      ),
+    );
   }
 
   @override
