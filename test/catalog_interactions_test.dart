@@ -174,6 +174,80 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('Catalog mutations survive toggling during a refresh', (
+    tester,
+  ) async {
+    await tester.pumpWidget(const MyApp());
+    await tester.drag(
+      find.byKey(const ValueKey('seed-backpack')),
+      const Offset(-900, 0),
+    );
+    await tester.pumpAndSettle();
+
+    final refresh = tester
+        .widget<RefreshIndicator>(find.byType(RefreshIndicator))
+        .onRefresh();
+    await tester.tap(find.byTooltip('Show grid'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 1500));
+    await refresh;
+    await tester.pumpAndSettle();
+
+    expect(
+      tester
+          .widgetList<ProductCard>(find.byType(ProductCard))
+          .map((card) => card.product.id)
+          .take(2),
+      ['refresh-1', 'seed-headphones'],
+    );
+    expect(find.byKey(const ValueKey('seed-backpack')), findsNothing);
+
+    await tester.tap(find.text('UNDO'));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('seed-backpack')), findsOneWidget);
+
+    await tester.tap(find.byTooltip('Show list'));
+    await tester.pumpAndSettle();
+    expect(
+      tester
+          .widgetList<ProductRow>(find.byType(ProductRow))
+          .map((row) => row.product.id)
+          .take(4),
+      ['refresh-1', 'seed-backpack', 'seed-headphones', 'seed-watch'],
+    );
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('Partial swipe exposes a red delete background and can cancel', (
+    tester,
+  ) async {
+    await tester.pumpWidget(const MyApp());
+    final row = find.byKey(const ValueKey('seed-headphones'));
+    final gesture = await tester.startGesture(tester.getCenter(row));
+    await gesture.moveBy(const Offset(-160, 0));
+    await gesture.moveBy(const Offset(-100, 0));
+    await tester.pump(const Duration(milliseconds: 100));
+
+    final deleteIcon = find.descendant(
+      of: row,
+      matching: find.byIcon(Icons.delete),
+    );
+    expect(deleteIcon, findsOneWidget);
+    expect(
+      tester.getCenter(deleteIcon).dx,
+      greaterThan(tester.getRect(find.byType(ProductRow).first).right),
+    );
+    final dismissible = tester.widget<Dismissible>(row);
+    expect((dismissible.background! as Container).color, Colors.red);
+
+    await gesture.moveBy(const Offset(260, 0));
+    await gesture.up();
+    await tester.pumpAndSettle();
+    expect(row, findsOneWidget);
+    expect(find.byType(SnackBar), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('Pending refresh is safe after the screen is disposed', (
     tester,
   ) async {

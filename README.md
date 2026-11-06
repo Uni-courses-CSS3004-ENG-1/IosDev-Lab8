@@ -31,6 +31,23 @@ flutter run -d <simulator-uuid>
 
 Replace the placeholders with the chosen device UUID; skip `boot` if that device is already booted. Keep `flutter run` attached to use hot reload (`r`) or quit (`q`). To target another supported device, select its ID from `flutter devices`.
 
+## Automated checks
+
+```sh
+dart format --output=none --set-exit-if-changed lib test integration_test
+flutter analyze
+flutter test
+flutter test integration_test/catalog_simulator_test.dart -d <simulator-uuid>
+```
+
+The 17 widget tests cover small-phone layouts, toggling with pending refresh and catalog mutations, the exact 1500 ms delay, refresh gestures in both views, partial and directional swipes, undo positioning, and empty/reset recovery. The integration test runs scrolling, refresh in both layouts, dismissal, undo, and empty/reset gestures on the selected Simulator, with checks for Flutter layout exceptions.
+
+After integration testing, relaunch the regular app and leave it running:
+
+```sh
+flutter run -d <simulator-uuid> --no-resident
+```
+
 ## Architecture
 
 | Location | Responsibility |
@@ -74,4 +91,4 @@ The empty state displays an inventory icon, **Catalog is Empty**, and **Reset Ca
 
 ## Task branches and commits
 
-The implementation is split across `feature/catalog-views` (commits 1–4: product foundations, screen shell, list, grid/toggle) and `feature/catalog-interactions` (commits 5–8: refresh, deletion, undo, empty recovery). This README is commit 9; validation and Simulator launch are reserved for the final step/commit 10.
+The implementation is split across exactly two task branches: `feature/catalog-views` (commits 1–4: product foundations, screen shell, list, grid/toggle) and `feature/catalog-interactions` (commits 5–10: refresh, deletion, undo, empty recovery, documentation, and validation). Commit 10 adds widget regression checks and the iOS Simulator integration walkthrough. The second branch contains all ten task commits; `main` preserves the starter baseline.
