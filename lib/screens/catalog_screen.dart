@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../data/seed_catalog.dart';
 import '../models/product.dart';
+import '../widgets/product_row.dart';
 
 class CatalogScreen extends StatefulWidget {
   const CatalogScreen({super.key});
@@ -21,17 +22,13 @@ class _CatalogScreenState extends State<CatalogScreen> {
         title: const Text('Smart Catalog'),
       ),
       body: SafeArea(
-        child: ListView.builder(
+        child: ListView.separated(
           itemCount: _products.length,
+          separatorBuilder: (context, index) =>
+              const Divider(height: 1, thickness: 0.5),
           itemBuilder: (context, index) {
             final product = _products[index];
-            return ListTile(
-              key: ValueKey(product.id),
-              leading: CircleAvatar(child: Icon(product.avatar)),
-              title: Text(product.title),
-              subtitle: Text('${product.category} · ★ ${product.rating}'),
-              trailing: Text('\$${product.price.toStringAsFixed(2)}'),
-            );
+            return ProductRow(key: ValueKey(product.id), product: product);
           },
         ),
       ),

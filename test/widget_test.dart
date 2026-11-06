@@ -8,7 +8,8 @@ void main() {
 
     expect(find.text('Smart Catalog'), findsOneWidget);
     expect(find.text('Wireless Headphones'), findsOneWidget);
-    expect(find.text('Electronics · ★ 4.8'), findsOneWidget);
+    expect(find.text('Electronics'), findsWidgets);
+    expect(find.text('★ 4.8'), findsWidgets);
     expect(find.text('\$89.99'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
