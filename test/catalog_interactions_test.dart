@@ -152,7 +152,11 @@ void main() {
     tester,
   ) async {
     await tester.pumpWidget(const MyApp());
-    await tester.scrollUntilVisible(find.text('Dart Handbook'), 150);
+    await tester.scrollUntilVisible(
+      find.byKey(const ValueKey('seed-book')),
+      150,
+    );
+    await tester.pumpAndSettle();
     await tester.drag(
       find.byKey(const ValueKey('seed-book')),
       const Offset(-900, 0),
