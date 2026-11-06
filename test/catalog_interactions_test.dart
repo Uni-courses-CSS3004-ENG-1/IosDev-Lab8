@@ -53,6 +53,20 @@ void main() {
     expect(find.text('New Arrival 1'), findsOneWidget);
   });
 
+  testWidgets('Rows dismiss only from right to left', (tester) async {
+    await tester.pumpWidget(const MyApp());
+    final row = find.byKey(const ValueKey('seed-backpack'));
+    await tester.drag(row, const Offset(900, 0));
+    await tester.pumpAndSettle();
+    expect(row, findsOneWidget);
+
+    await tester.drag(row, const Offset(-900, 0));
+    await tester.pumpAndSettle();
+    expect(row, findsNothing);
+    expect(find.text('Wireless Headphones'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('Pending refresh is safe after the screen is disposed', (
     tester,
   ) async {

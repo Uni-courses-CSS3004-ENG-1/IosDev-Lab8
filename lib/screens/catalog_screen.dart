@@ -37,6 +37,10 @@ class _CatalogScreenState extends State<CatalogScreen> {
     });
   }
 
+  void _dismissProduct(Product product) {
+    setState(() => _products.removeWhere((item) => item.id == product.id));
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -80,9 +84,17 @@ class _CatalogScreenState extends State<CatalogScreen> {
                       const Divider(height: 1, thickness: 0.5),
                   itemBuilder: (context, index) {
                     final product = _products[index];
-                    return ProductRow(
+                    return Dismissible(
                       key: ValueKey(product.id),
-                      product: product,
+                      direction: DismissDirection.endToStart,
+                      background: Container(
+                        color: Colors.red,
+                        alignment: AlignmentDirectional.centerEnd,
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        child: const Icon(Icons.delete, color: Colors.white),
+                      ),
+                      onDismissed: (_) => _dismissProduct(product),
+                      child: ProductRow(product: product),
                     );
                   },
                 ),
