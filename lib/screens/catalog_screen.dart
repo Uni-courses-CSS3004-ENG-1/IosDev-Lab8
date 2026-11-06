@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../data/seed_catalog.dart';
 import '../models/product.dart';
+import '../widgets/empty_catalog.dart';
 import '../widgets/product_card.dart';
 import '../widgets/product_row.dart';
 
@@ -16,10 +17,22 @@ class _CatalogScreenState extends State<CatalogScreen> {
   final List<Product> _products = List<Product>.of(seedCatalog);
   bool _isGrid = false;
   int _nextProductId = 1;
+  int _catalogVersion = 0;
+
+  void _resetCatalog() {
+    ScaffoldMessenger.of(context).removeCurrentSnackBar();
+    setState(() {
+      _catalogVersion++;
+      _products
+        ..clear()
+        ..addAll(seedCatalog);
+    });
+  }
 
   Future<void> _refreshCatalog() async {
+    final version = _catalogVersion;
     await Future.delayed(const Duration(milliseconds: 1500));
-    if (!mounted) return;
+    if (!mounted || version != _catalogVersion) return;
 
     setState(() {
       final number = _nextProductId++;
@@ -42,6 +55,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
     if (index == -1) return;
     setState(() => _products.removeAt(index));
 
+    final version = _catalogVersion;
     var restored = false;
     final messenger = ScaffoldMessenger.of(context);
     messenger.removeCurrentSnackBar();
@@ -52,7 +66,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
         action: SnackBarAction(
           label: 'UNDO',
           onPressed: () {
-            if (!mounted || restored) return;
+            if (!mounted || restored || version != _catalogVersion) return;
             if (_products.any((item) => item.id == product.id)) return;
             restored = true;
             setState(() {
@@ -81,7 +95,9 @@ class _CatalogScreenState extends State<CatalogScreen> {
       body: SafeArea(
         child: RefreshIndicator(
           onRefresh: _refreshCatalog,
-          child: _isGrid
+          child: _products.isEmpty
+              ? EmptyCatalog(onReset: _resetCatalog)
+              : _isGrid
               ? GridView.builder(
                   physics: const AlwaysScrollableScrollPhysics(),
                   padding: const EdgeInsets.all(8),
