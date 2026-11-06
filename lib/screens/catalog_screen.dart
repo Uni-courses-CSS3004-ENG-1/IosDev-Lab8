@@ -15,6 +15,27 @@ class CatalogScreen extends StatefulWidget {
 class _CatalogScreenState extends State<CatalogScreen> {
   final List<Product> _products = List<Product>.of(seedCatalog);
   bool _isGrid = false;
+  int _nextProductId = 1;
+
+  Future<void> _refreshCatalog() async {
+    await Future.delayed(const Duration(milliseconds: 1500));
+    if (!mounted) return;
+
+    setState(() {
+      final number = _nextProductId++;
+      _products.insert(
+        0,
+        Product(
+          id: 'refresh-$number',
+          title: 'New Arrival $number',
+          category: 'Electronics',
+          rating: 4.5,
+          price: 39.99,
+          avatar: Icons.devices,
+        ),
+      );
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -31,36 +52,41 @@ class _CatalogScreenState extends State<CatalogScreen> {
         ],
       ),
       body: SafeArea(
-        child: _isGrid
-            ? GridView.builder(
-                padding: const EdgeInsets.all(8),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  childAspectRatio: 0.72,
-                  crossAxisSpacing: 8,
-                  mainAxisSpacing: 8,
+        child: RefreshIndicator(
+          onRefresh: _refreshCatalog,
+          child: _isGrid
+              ? GridView.builder(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.all(8),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    childAspectRatio: 0.72,
+                    crossAxisSpacing: 8,
+                    mainAxisSpacing: 8,
+                  ),
+                  itemCount: _products.length,
+                  itemBuilder: (context, index) {
+                    final product = _products[index];
+                    return ProductCard(
+                      key: ValueKey(product.id),
+                      product: product,
+                    );
+                  },
+                )
+              : ListView.separated(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  itemCount: _products.length,
+                  separatorBuilder: (context, index) =>
+                      const Divider(height: 1, thickness: 0.5),
+                  itemBuilder: (context, index) {
+                    final product = _products[index];
+                    return ProductRow(
+                      key: ValueKey(product.id),
+                      product: product,
+                    );
+                  },
                 ),
-                itemCount: _products.length,
-                itemBuilder: (context, index) {
-                  final product = _products[index];
-                  return ProductCard(
-                    key: ValueKey(product.id),
-                    product: product,
-                  );
-                },
-              )
-            : ListView.separated(
-                itemCount: _products.length,
-                separatorBuilder: (context, index) =>
-                    const Divider(height: 1, thickness: 0.5),
-                itemBuilder: (context, index) {
-                  final product = _products[index];
-                  return ProductRow(
-                    key: ValueKey(product.id),
-                    product: product,
-                  );
-                },
-              ),
+        ),
       ),
     );
   }
